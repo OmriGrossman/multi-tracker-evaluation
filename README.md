@@ -87,6 +87,8 @@ python detect.py
 
 * **Output format**: `frame_id,x1,y1,x2,y2,confidence,class_id`
 
+> **Note:** The project uses YOLOv8s by default. To use different YOLO variants, modify `MODEL_PATH = 'yolov8s.pt'` in `detect.py`. Higher-capacity models (YOLOv8m/l/x) will improve detection accuracy and subsequently enhance tracking performance.
+
 ### 2. Tracking
 
 Execute each tracker separately using YOLO detections:
@@ -123,8 +125,18 @@ python evaluate.py
 
 * **Results** will be printed and saved in `evaluation_results/tracker_comparison.csv`
 
+## Format Justifications
 
-Note: This step is optional and not required for metric evaluation.
+### Detection Format: `frame_id,x1,y1,x2,y2,confidence,class_id`
+- `frame_id`: Essential for temporal tracking
+- `x1,y1,x2,y2`: Standard bounding box coordinates for easy conversion
+- `confidence`: Critical for tracker association thresholds
+- `class_id`: Enables class-specific tracking if needed
+
+### Tracker Format: `frame_id,track_id,x,y,width,height,confidence,class_id,visibility`
+- Follows MOT17 challenge format for standardized evaluation
+- `track_id`: Core identity maintenance field
+- `visibility`: Handles occlusion scenarios as required
 
 ## Adjusting YAML Configuration for ByteTrack and BOTSort
 
@@ -149,7 +161,7 @@ track_buffer: 30  # How many frames a track persists without detection
 match_thresh: 0.8
 ```
 
-> ⚠️ Note: These changes may be lost if the Ultralytics package is updated or reinstalled.
+
 
 ### Alternative: Use a Custom YAML File
 
