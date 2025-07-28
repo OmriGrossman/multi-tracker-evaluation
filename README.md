@@ -58,7 +58,6 @@ pip install -r requirements.txt
 ├── track_deepsort.py
 ├── track_botsort.py
 ├── evaluate.py
-├── visualize_tracks.py
 ├── requirements.txt
 └── .gitignore
 ```
@@ -128,15 +127,16 @@ python evaluate.py
 ## Format Justifications
 
 ### Detection Format: `frame_id,x1,y1,x2,y2,confidence,class_id`
-- `frame_id`: Essential for temporal tracking
-- `x1,y1,x2,y2`: Standard bounding box coordinates for easy conversion
-- `confidence`: Critical for tracker association thresholds
+- `frame_id`: Essential for temporal tracking association across frames
+- `x1,y1,x2,y2`: Standard bounding box coordinates (top-left, bottom-right) for easy conversion to center-width-height format required by trackers
+- `confidence`: Critical for tracker association thresholds and filtering low-quality detections
 - `class_id`: Enables class-specific tracking if needed
 
 ### Tracker Format: `frame_id,track_id,x,y,width,height,confidence,class_id,visibility`
-- Follows MOT17 challenge format for standardized evaluation
-- `track_id`: Core identity maintenance field
-- `visibility`: Handles occlusion scenarios as required
+- Follows MOT17 challenge format for standardized evaluation and benchmarking
+- `track_id`: Core identity maintenance field - the primary output of tracking algorithms
+- `x,y,width,height`: Center-based coordinates matching tracker internal representations
+- `visibility`: Handles occlusion scenarios (0=fully occluded, 1=visible)
 
 ## Adjusting YAML Configuration for ByteTrack and BOTSort
 
@@ -152,7 +152,7 @@ You can directly modify the original YAML configuration files located at:
 
 These YAML files are used by default by the Ultralytics `model.track()` method. Modifying them affects all uses of the trackers within this environment.
 
-**Example (in **``bytetrack.yaml or botsort.yaml``**)**:
+**Example (in bytetrack.yaml or botsort.yaml)**:
 
 ```yaml
 tracker_type: bytetrack  # or botsort
