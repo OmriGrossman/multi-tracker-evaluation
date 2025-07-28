@@ -33,8 +33,8 @@ This project compares three bounding-box trackers—ByteTrack, DeepSORT, and BOT
 Clone this repository and install dependencies:
 
 ```bash
-git clone <repo-url>
-cd <repo-name>
+git clone https://github.com/OmriGrossman/multi-tracker-evaluation.git
+cd multi-tracker-evaluation
 pip install -r requirements.txt
 ```
 
@@ -62,6 +62,18 @@ pip install -r requirements.txt
 ├── requirements.txt
 └── .gitignore
 ```
+
+## Video Source and Ground Truth
+
+The primary test video used in this project is [MOT17-09-SDP](https://motchallenge.net/vis/MOT17-09-SDP), sourced from the [MOT17 dataset](https://motchallenge.net/data/MOT17/).
+
+You may use any video from the MOT17 "train" section, as these include the `gt/gt.txt` file containing ground truth annotations. These videos are distributed in MPEG format. To convert the video into an MP4 file compatible with OpenCV and YOLOv8, use FFmpeg:
+
+```bash
+ffmpeg -i MOT17-09-SDP.mp4 -c:v libx264 -pix_fmt yuv420p data/input_video.mp4
+```
+
+Ensure that the corresponding ground truth file is placed at `data/gt.txt` for evaluation purposes.
 
 ## Usage
 
@@ -99,6 +111,8 @@ python track_botsort.py
 
 * **Output format for trackers**: `frame_id,track_id,x,y,width,height,confidence,class_id,visibility`
 
+Each tracker also logs its runtime in `evaluation_results/runtime_log.txt`.
+
 ### 3. Evaluation
 
 Run evaluation metrics comparing trackers against the ground truth:
@@ -109,30 +123,44 @@ python evaluate.py
 
 * **Results** will be printed and saved in `evaluation_results/tracker_comparison.csv`
 
+
+Note: This step is optional and not required for metric evaluation.
+
 ## Adjusting YAML Configuration for ByteTrack and BOTSort
 
-ByteTrack and BOTSort use YAML files (`bytetrack.yaml` and `botsort.yaml`) for configuring parameters, such as tracking persistence (`track_buffer`, equivalent to `max_age`).
+ByteTrack and BOTSort use YAML files (`bytetrack.yaml` and `botsort.yaml`) for configuring tracker parameters, including `track_buffer` (equivalent to `max_age`).
 
-### Steps to customize YAML configurations:
+### Recommended: Edit the Default YAML Directly
 
-1. **Locate YAML files** in the Ultralytics package installation (`site-packages/ultralytics/cfg/trackers/`).
+You can directly modify the original YAML configuration files located at:
 
-2. **Copy** the YAML file to your project directory and rename (e.g., `bytetrack_custom.yaml`).
+```
+<your-env>/lib/pythonX.X/site-packages/ultralytics/cfg/trackers/
+```
 
-3. **Edit** the copied YAML file to adjust parameters such as `track_buffer`:
+These YAML files are used by default by the Ultralytics `model.track()` method. Modifying them affects all uses of the trackers within this environment.
+
+**Example (in **``bytetrack.yaml or botsort.yaml``**)**:
 
 ```yaml
 tracker_type: bytetrack  # or botsort
 track_thresh: 0.5
-track_buffer: 30  # Adjust this parameter
+track_buffer: 30  # How many frames a track persists without detection
 match_thresh: 0.8
 ```
 
-4. **Modify** your tracking script to use your custom YAML configuration:
+> ⚠️ Note: These changes may be lost if the Ultralytics package is updated or reinstalled.
+
+### Alternative: Use a Custom YAML File
+
+1. Copy the tracker YAML to your project directory and rename it (e.g., `bytetrack_custom.yaml`).
+2. Edit it to change the parameters (like above).
+3. In your script, override the default:
 
 ```python
-TRACKER_CONFIG = 'bytetrack_custom.yaml'  # Your custom YAML configuration
+TRACKER_CONFIG = 'bytetrack_custom.yaml'
 ```
+
 
 ## Comparative Metrics
 
@@ -145,9 +173,12 @@ The following KPIs are used for evaluating tracker performance:
 * **Mostly Tracked/Lost (%)**: Percentage of objects tracked successfully or unsuccessfully across frames.
 * **Average Track Length**: Indicates track persistence.
 * **Estimated ID Switches**: Heuristic measure to detect gaps within tracks.
-* **Runtime (s)**: The runtime of each tracker to measure time efficiency.
-
+* **Runtime (s)**: Total execution time for the tracking script.
 
 ## Parameter Tuning
 
-* Confidence thresholds for detections (`CONF_THRESHOLD`) and tracking persistence (`max_age`) are explicitly documented within scripts (`detect.py` and tracking scripts).
+* Confidence thresholds for detections (`CONF_THRESHOLD`) and tracking persistence (`max_age` or `track_buffer`) are explicitly documented within scripts (`detect.py` and tracking scripts).
+
+## .gitignore
+
+This project includes a `.gitignore` that excludes Python cache files, virtual environments, YOLO weights, IDE settings, and generated data/results directories to keep the repository clean.
