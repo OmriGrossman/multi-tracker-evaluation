@@ -1,0 +1,8 @@
+ultralytics
+opencv-python
+deep_sort_realtime
+supervision
+numpy==1.26.4
+filterpy
+seaborn
+motmetrics
